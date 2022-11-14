@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require('bcryptjs');
+const { token } = require("morgan");
 
 
 exports.updateUser = async (req, res) => {
@@ -51,9 +52,9 @@ exports.updateUser = async (req, res) => {
 exports.RegisterUser = async (req, res) => {
   
   //console.log(req.body)
-  User.findOne({ email: req.body.email }, async (err, doc) => {
-    if (err) throw err;
-    if(doc) res.send("User already exists");
+  User.findOne({ username: req.body.username }, async (err, doc) => {
+    if (err) return res.status(500).send(err);
+    if(doc) return res.status(400).send({success:false ,error: "User already exists!"});
 
     if(!doc){
 
@@ -61,33 +62,43 @@ exports.RegisterUser = async (req, res) => {
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
       const newUser = new User({
-        name: "TEMP",
-        email: req.body.email,
+        name: req.body.name,
+        username: req.body.username,
         password: hashedPassword
       })
 
-      await newUser.save();
-      res.send("User Created"); 
+      try {
+        await newUser.save();
+      } catch (err) {
+        console.log(err);
+        return res.status(400).send({success:false ,error: "User already exists!"});
+      }
+      res.send({success: true, message: "User Created"}); 
     }
   })
  
 }
 
  exports.LoginUser = (req, res) => {
-    User.findOne({ 'email': req.body.user.email }, (err, user) => {
+    User.findOne({ 'username': req.body.username }, (err, user) => {
       if (!user) {
-        return res.status(404).json({ success: false, message: 'User email not found!' });
+        return res.status(401).json({ success: false, error: 'User account not found!' });
       } 
       
       else {
-          user.comparePassword(req.body.user.password, (err, isMatch) => {
+        // console.log(user)
+          bcrypt.compare(req.body.password, user.password, async (err, isMatch) => {
               console.log(isMatch);
               //isMatch is eaither true or false
               if (!isMatch) {
-              return res.status(400).json({ success: false, message: 'Wrong Password!' });
+              return res.status(401).json({ success: false, error: 'Wrong Password!' });
             } 
             else {
-                  user.generateToken((err, user) => {
+              if (!user.enabled){
+                return res.status(400).json({ success: false, error: 'User not yet verified!' });
+              }
+                  const token = await user.generateToken();
+                  user.save();
                     if (err) {
                       return res.status(400).send({ err });
                     } 
@@ -95,18 +106,18 @@ exports.RegisterUser = async (req, res) => {
                       const data = {
                       userID: user._id,
                       name: user.name,
-                      email: user.email,
-                      token: user.token,
+                      username: user.username,
+                      token: token,
                       }
                       //saving token to cookie
-                      res.cookie('authToken', user.token).status(200).json(
+                     return  res.status(200).json(
                       {
                         success: true,
                         message: 'Successfully Logged In!',
                         userData: data
                       })
                     }
-                  });
+                  
             }
         });
       }
@@ -123,6 +134,19 @@ exports.RegisterUser = async (req, res) => {
  })
  }
 
+exports.verifyToken = async (req, res) => {
+  User.findOne({ token: req.body?.token || "" }).exec((err, user) => {
+    if (err) {
+      // console.log(err);
+      return res.status(400).send({ err });
+    }
+    if (!user) {
+      // console.log(req.query?.token);    
+      return res.status(401).send("Invalid Token");
+    }
+    return res.status(200).json({token: user.token, username: user.username, name: user.name});
+  });
+};
 exports.currentUser = async (req, res) => {
   User.findOne({ email: req.user.email }).exec((err, user) => {
     if (err) throw new Error(err);

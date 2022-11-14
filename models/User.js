@@ -1,9 +1,7 @@
 const mongoose =  require('mongoose');
   const { Schema } = mongoose;
 
-  const bcrypt = require('bcrypt');
   const jwt = require('jsonwebtoken');
-  const SALT = 10;
   
 
   const userSchema = new Schema({
@@ -13,7 +11,7 @@ const mongoose =  require('mongoose');
     },
     
     image: String,
-    email:  {
+    username:  {
       type: String,
       unique: true,
       required: true
@@ -26,7 +24,7 @@ const mongoose =  require('mongoose');
 
     enabled: {
       type: Boolean,
-      default: true
+      default: false
     },
 
     token: {
@@ -34,15 +32,19 @@ const mongoose =  require('mongoose');
       unique: true
     },
     meta: {
-      twitterURL: String,
       telegramId: String,
-      walletAddress: String
-    }
+    },
   }, {
     timestamps: true
-});
+}
 
+    );
 
+userSchema.methods.generateToken = function() {
+  const token = jwt.sign({ _id: this._id, username: this.username, name: this.name }, process.env.JWT_SECRET_KEY);
+  this.token = token;
+  return token;
+}
   
 const model = mongoose.model("user", userSchema);
 

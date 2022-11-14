@@ -18,7 +18,7 @@ const app = express();
 // db
 try{
     connectToDB();
-    console.log("DB CONNECTED");
+    // console.log("DB CONNECTED");
 }
 catch{
     (err) => console.log("DB CONNECTION ERR", err)
