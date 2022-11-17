@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const { readdirSync } = require("fs");
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 
 
 require("dotenv").config();
@@ -26,7 +27,8 @@ catch{
 
 // middlewares
 app.use(morgan("dev"));
-app.use(bodyParser.json({ limit: "2mb" }));
+app.use(bodyParser.json());
+app.use(fileUpload());
 app.use(cors());
 
 // route

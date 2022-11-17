@@ -29,11 +29,11 @@ const mongoose =  require('mongoose');
 
     token: {
       type: String,
-      unique: true
     },
-    meta: {
-      telegramId: String,
-    },
+    telegramId: {
+      type: String,
+      default: null
+    }
   }, {
     timestamps: true
 }
