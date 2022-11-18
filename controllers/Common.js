@@ -71,7 +71,7 @@ let reqID = 'IMG'+new Date().getTime();
             }).catch(error => console.error('Error:', error))
 
             if (resp.success){
-                res.status(200).send({success: true, file: `${process.env.FILE_SERVER}/download?file=${reqID}.jpg`})
+                res.status(200).send({success: true, file: `${process.env.FILE_SERVER}/download?file=${reqID}.eye`})
             }else{
                 res.status(400).send({success: false, message: "Encryption failed"})
             }
@@ -95,17 +95,14 @@ let reqID = 'IMG'+new Date().getTime();
 let reqID = 'D_IMG'+new Date().getTime();
   let decryptImage;
   let decryptUploadPath;
-  console.log(req.body,req.files)
+  // console.log(req.body,req.files)
 //   console.log(req.body)l
     try{
-      console.log(1)
       if (req.files){
-        console.log(2)
         if (req.files.decrypt){
-          console.log(3)
           decryptImage = req.files.decrypt;
           decryptUploadPath = __dirname + "/../uploads/" + reqID + ".jpg";
-          console.log(decryptUploadPath, req.files)
+          // console.log(decryptUploadPath, req.files)
           //send image to api
           
           decryptImage.mv(decryptUploadPath, async function(err) {
@@ -114,7 +111,6 @@ let reqID = 'D_IMG'+new Date().getTime();
               console.log(err)
               return res.status(500).send(err);
             }
-            console.log(4)
             
             //   read file to formdata
             let formData = new FormData();
