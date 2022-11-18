@@ -33,6 +33,9 @@ const mongoose =  require('mongoose');
     telegramId: {
       type: String,
       default: null
+    },
+    teleRegCode: {
+      type: String,
     }
   }, {
     timestamps: true
